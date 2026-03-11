@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // NEW: Import secure storage
+import 'package:projectprm/viewmodels/request/authorizationRequest.dart'; // Adjust path to your request models
+import 'package:projectprm/viewmodels/response/authorizationResponse.dart';
+import 'package:projectprm/service/authenticationService.dart';
+import 'package:projectprm/screen/general/home.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -12,6 +17,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
+  // NEW: Add loading state and instantiate our service & storage
+  bool _isLoading = false;
+  final AuthService _authService = AuthService();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -19,11 +29,58 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleLogin() {
-    // TODO: Implement your authentication logic here
-    final email = _emailController.text;
-    final password = _passwordController.text;
-    print('Login attempt with: $email');
+  // NEW: Turn this into an async function to handle the API call
+  Future<void> _handleLogin() async {
+    // Basic validation
+    if (_emailController.text.trim().isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter both email and password.'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    // 1. Start loading spinner
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final request = LoginRequest(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      final response = await _authService.login(request);
+
+      // Save ONLY the access token
+      await _secureStorage.write(key: 'access_token', value: response.accessToken);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Welcome back! ${response.message}'), backgroundColor: Colors.green),
+      );
+
+      // Navigate to the Home Screen and remove the Login Screen from the backstack
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+
+    } catch (e) {
+      if (!mounted) return;
+      // 5. Handle Errors (Wrong password, no internet, etc.)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red),
+      );
+    } finally {
+      // 6. Stop loading spinner whether it succeeded or failed
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -38,7 +95,6 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // App Logo or Title
                 const Icon(
                   Icons.home_repair_service,
                   size: 80,
@@ -65,7 +121,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 48),
 
-                // Email Field
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -79,7 +134,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Password Field
                 TextField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
@@ -103,21 +157,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Forgot Password
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      // TODO: Navigate to forgot password screen
+                    onPressed: _isLoading ? null : () {
+                      // Navigate to forgot password screen
                     },
                     child: const Text('Forgot Password?'),
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                // Login Button
+                // NEW: Update the Login Button to show the loading state
                 ElevatedButton(
-                  onPressed: _handleLogin,
+                  // Disable the button if it's currently loading
+                  onPressed: _isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -125,14 +179,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     backgroundColor: Colors.blueAccent,
                   ),
-                  child: const Text(
+                  child: _isLoading
+                      ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : const Text(
                     'Login',
                     style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                // Sign Up Prompt
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -141,8 +203,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(color: Colors.black54),
                     ),
                     TextButton(
-                      onPressed: () {
-                        // TODO: Navigate to registration screen
+                      onPressed: _isLoading ? null : () {
+                        // Navigate to registration screen
                       },
                       child: const Text('Sign Up'),
                     ),

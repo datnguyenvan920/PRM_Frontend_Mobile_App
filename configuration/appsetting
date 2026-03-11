@@ -1,3 +1,0 @@
-class AppSetting {
-  static const String apiUrl = 'https://localhost:7051/';
-}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screen/authorization/login.dart';
 import 'screen/dashboard/customer_dashboard.dart';
 import 'screen/general/home.dart';
+import 'screen/booking/booking_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/customer_dashboard': (context) => const CustomerDashboard(),
         '/home': (context) => const HomeScreen(),
+        '/bookings': (context) => const BookingScreen(),
         // '/worker_dashboard': (context) => const WorkerDashboard(),'
         // You can easily add a '/worker_dashboard' here later
       },

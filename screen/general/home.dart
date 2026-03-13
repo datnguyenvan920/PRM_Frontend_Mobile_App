@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../booking/booking_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -24,6 +25,26 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedIndex = index;
     });
+    
+    if (index == 1) {
+      // Navigate to bookings screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const BookingScreen()),
+      ).then((_) {
+        // Reset to home when coming back
+        setState(() => _selectedIndex = 0);
+      });
+    }
+  }
+
+  void _navigateToBooking(String category, String serviceName) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BookingScreen(),
+      ),
+    );
   }
 
   @override
@@ -119,10 +140,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 itemCount: _categories.length,
                 itemBuilder: (context, index) {
-                  return _buildCategoryCard(
-                    _categories[index]['icon'],
-                    _categories[index]['name'],
-                    _categories[index]['color'],
+                  return GestureDetector(
+                    onTap: () => _navigateToBooking(
+                      _categories[index]['name'],
+                      _categories[index]['name'],
+                    ),
+                    child: _buildCategoryCard(
+                      _categories[index]['icon'],
+                      _categories[index]['name'],
+                      _categories[index]['color'],
+                    ),
                   );
                 },
               ),
@@ -167,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () => _navigateToBooking('Cleaning', 'Deep Home Cleaning'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.blueAccent,

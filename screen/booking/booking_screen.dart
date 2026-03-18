@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:projectprm/models/booking.dart';
 import 'package:projectprm/models/rating.dart';
 import 'package:projectprm/service/booking_service.dart';
+import 'package:projectprm/service/auth_helper.dart';
 import 'package:projectprm/widgets/rating_bar.dart';
 import 'package:projectprm/screen/rating/rating_dialog.dart';
 
@@ -14,6 +15,7 @@ class BookingScreen extends StatefulWidget {
 
 class _BookingScreenState extends State<BookingScreen> {
   final BookingService _bookingService = BookingService();
+  final AuthHelper _authHelper = AuthHelper.instance;
   List<Booking> _bookings = [];
   bool _isLoading = true;
   String _selectedFilter = 'all'; // all, pending, confirmed, completed, cancelled
@@ -21,6 +23,14 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeAuth();
+  }
+
+  Future<void> _initializeAuth() async {
+    final token = await _authHelper.getAccessToken();
+    final customerId = await _authHelper.getCurrentCustomerId();
+    _bookingService.setAuthToken(token);
+    _bookingService.setCurrentCustomerId(customerId);
     _loadBookings();
   }
 

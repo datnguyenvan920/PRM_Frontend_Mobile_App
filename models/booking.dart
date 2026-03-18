@@ -8,6 +8,12 @@ class Booking {
   final String status; // pending, confirmed, completed, cancelled
   double? rating; // null means not rated yet
   final DateTime createdAt;
+  
+  // Backend API fields
+  final int? bookingId;
+  final int? customerId;
+  final int? workerId;
+  final int? packageId;
 
   Booking({
     required this.id,
@@ -19,6 +25,10 @@ class Booking {
     this.status = 'pending',
     this.rating,
     DateTime? createdAt,
+    this.bookingId,
+    this.customerId,
+    this.workerId,
+    this.packageId,
   }) : createdAt = createdAt ?? DateTime.now();
 
   Map<String, dynamic> toMap() {
@@ -57,6 +67,10 @@ class Booking {
     String? status,
     double? rating,
     DateTime? createdAt,
+    int? bookingId,
+    int? customerId,
+    int? workerId,
+    int? packageId,
   }) {
     return Booking(
       id: id ?? this.id,
@@ -68,6 +82,10 @@ class Booking {
       status: status ?? this.status,
       rating: rating ?? this.rating,
       createdAt: createdAt ?? this.createdAt,
+      bookingId: bookingId ?? this.bookingId,
+      customerId: customerId ?? this.customerId,
+      workerId: workerId ?? this.workerId,
+      packageId: packageId ?? this.packageId,
     );
   }
 }
